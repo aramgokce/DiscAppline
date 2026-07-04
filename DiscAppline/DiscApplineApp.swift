@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct DiscApplineApp: App {
@@ -13,5 +14,6 @@ struct DiscApplineApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: Routine.self)
     }
 }
