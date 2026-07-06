@@ -46,6 +46,19 @@ enum RoutineCategory: String, CaseIterable, Identifiable {
     case personal = "Personal"
 
     var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .health:
+            return "heart.fill"
+        case .growth:
+            return "book.fill"
+        case .work:
+            return "briefcase.fill"
+        case .personal:
+            return "house.fill"
+        }
+    }
 }
 
 enum RoutineRepeatType: String, CaseIterable, Identifiable {

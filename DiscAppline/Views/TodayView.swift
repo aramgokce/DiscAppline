@@ -18,8 +18,13 @@ struct TodayView: View {
     private let backgroundColor = Color(red: 0.88, green: 0.79, blue: 0.66)
     private let cardColor = Color(red: 0.96, green: 0.89, blue: 0.78)
     private let primaryColor = Color(red: 0.58, green: 0.38, blue: 0.20)
+    private let completedColor = Color(red: 0.48, green: 0.58, blue: 0.38)
     private let textColor = Color(red: 0.29, green: 0.20, blue: 0.13)
     private let softTextColor = Color(red: 0.47, green: 0.34, blue: 0.23)
+
+    private var nextRoutine: Routine? {
+        routines.first { !$0.isCompleted }
+    }
 
     var body: some View {
         NavigationStack {
@@ -36,10 +41,6 @@ struct TodayView: View {
                     Section("Today's Routines") {
                         ForEach(routines) { routine in
                             routineRow(routine)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    routineToEdit = routine
-                                }
                                 .listRowBackground(cardColor)
                         }
                     }
@@ -70,10 +71,14 @@ struct TodayView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Good Evening")
+            Text(greeting)
                 .font(.largeTitle)
                 .bold()
                 .foregroundStyle(textColor)
+
+            Text(Date.now.formatted(.dateTime.weekday(.wide).month(.wide).day()))
+                .font(.headline)
+                .foregroundStyle(primaryColor)
 
             Text("Build discipline, one routine at a time.")
                 .font(.subheadline)
@@ -89,12 +94,12 @@ struct TodayView: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(primaryColor)
 
-            Text(routines.first?.title ?? "No routines yet")
+            Text(nextRoutine?.title ?? "All done")
                 .font(.title2)
                 .bold()
                 .foregroundStyle(textColor)
 
-            Text(routines.first.map { formattedTime($0.time) } ?? "Add your first routine")
+            Text(nextRoutine.map { formattedTime($0.time) } ?? "Nice work for today")
                 .font(.subheadline)
                 .foregroundStyle(softTextColor)
         }
@@ -107,14 +112,25 @@ struct TodayView: View {
 
     private func routineRow(_ routine: Routine) -> some View {
         HStack(spacing: 12) {
-            Circle()
-                .stroke(primaryColor, lineWidth: 2)
-                .frame(width: 22, height: 22)
+            Button {
+                routine.isCompleted.toggle()
+            } label: {
+                Image(systemName: routine.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(routine.isCompleted ? completedColor : primaryColor)
+            }
+            .buttonStyle(.borderless)
+
+            Image(systemName: categoryIcon(for: routine))
+                .font(.title3)
+                .foregroundStyle(primaryColor)
+                .frame(width: 26)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(routine.title)
                     .font(.headline)
-                    .foregroundStyle(textColor)
+                    .foregroundStyle(routine.isCompleted ? softTextColor : textColor)
+                    .strikethrough(routine.isCompleted, color: softTextColor)
 
                 Text("\(routine.category) • \(formattedTime(routine.time))")
                     .font(.caption)
@@ -122,6 +138,14 @@ struct TodayView: View {
             }
 
             Spacer()
+
+            Button {
+                routineToEdit = routine
+            } label: {
+                Image(systemName: "pencil")
+                    .foregroundStyle(primaryColor)
+            }
+            .buttonStyle(.borderless)
 
             Button(role: .destructive) {
                 modelContext.delete(routine)
@@ -131,6 +155,25 @@ struct TodayView: View {
             .buttonStyle(.borderless)
         }
         .padding(.vertical, 6)
+    }
+
+    private func categoryIcon(for routine: Routine) -> String {
+        RoutineCategory(rawValue: routine.category)?.icon ?? "circle.fill"
+    }
+
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+
+        switch hour {
+        case 5..<12:
+            return "Good Morning ☀️"
+        case 12..<17:
+            return "Good Afternoon 🌤"
+        case 17..<22:
+            return "Good Evening 🌙"
+        default:
+            return "Good Night 🌙"
+        }
     }
 
     private func formattedTime(_ date: Date) -> String {

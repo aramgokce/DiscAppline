@@ -13,6 +13,9 @@ struct DiscApplineApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onAppear {
+                    NotificationManager.requestPermission()
+                }
         }
         .modelContainer(for: Routine.self)
     }

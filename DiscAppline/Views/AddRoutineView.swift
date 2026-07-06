@@ -122,6 +122,13 @@ struct AddRoutineView: View {
             routineToEdit.repeatType = selectedRepeatType.rawValue
             routineToEdit.selectedDays = selectedDays.map { $0.rawValue }
             routineToEdit.notes = notes
+
+            if isReminderEnabled {
+                NotificationManager.scheduleNotification(
+                    title: title,
+                    date: selectedTime
+                )
+            }
         } else {
             let routine = Routine(
                 title: title,
@@ -134,6 +141,13 @@ struct AddRoutineView: View {
             )
 
             modelContext.insert(routine)
+
+            if isReminderEnabled {
+                NotificationManager.scheduleNotification(
+                    title: title,
+                    date: selectedTime
+                )
+            }
         }
     }
 
